@@ -8,7 +8,7 @@ backend:
   repo: abafdez/cms-test # TODO if the repo has another name
   branch: main
   # The sveltia-cms-auth Worker: https://github.com/sveltia/sveltia-cms-auth
-  base_url: https://sveltia-cms-auth.YOUR-SUBDOMAIN.workers.dev # TODO
+  base_url: https://cms-test.sr-generoso.workers.dev
 
 # Required. Images aren't part of this test: /uploads would also need the /cms-test base.
 media_folder: static/uploads

@@ -39,12 +39,19 @@ Open <http://localhost:5173/admin/index.html> in Chrome or Edge and choose **Wor
 
 1. **Repo:** create `abafdez/cms-test` (if you use another name, change `repo:` in `static/admin/config.yml`), then push to `main`.
 2. **Pages:** go to Settings → Pages → Source and choose **GitHub Actions**. The workflow deploys to `https://abafdez.github.io/cms-test/`.
-3. **Worker:** deploy [sveltia-cms-auth](https://github.com/sveltia/sveltia-cms-auth) to Cloudflare (use its Deploy button or `wrangler deploy`), then copy its URL (`https://sveltia-cms-auth.<subdomain>.workers.dev`).
-4. **GitHub OAuth App:** create one under Settings → Developer settings → OAuth Apps.
-   - Homepage: `https://abafdez.github.io/cms-test/`
-   - Authorization callback URL: `<worker URL>/callback`
+3. **Worker:** deploy [sveltia-cms-auth](https://github.com/sveltia/sveltia-cms-auth) to Cloudflare, then copy its URL (`https://sveltia-cms-auth.<subdomain>.workers.dev`). It's one file with no dependencies, `src/index.js`, so you can paste it into the dashboard's editor; there's no need for the Deploy button's build.
+4. **GitHub App** (instead of the OAuth App that sveltia-cms-auth's README describes; the worker's sign-in flow is the same for both): create one under Settings → Developer settings → GitHub Apps → New GitHub App.
+   - Homepage URL: `https://abafdez.github.io/cms-test/`
+   - Callback URL: `<worker URL>/callback`
+   - Leave "Request user authorization (OAuth) during installation" unchecked.
+   - Webhook: uncheck **Active** (nothing to receive).
+   - Repository permissions: **Contents: Read and write** (Metadata: Read-only is added automatically). Nothing else.
+   - Where can it be installed: **Only on this account**.
+   - After creating it, copy the **Client ID** (`Iv…`, not the App ID) and **generate a client secret**. You don't need a private key: that's for the App acting as itself, and here it acts as you.
+   - **Install it** (Install App → Only select repositories → `cms-test`). Its tokens can only reach repos it's installed on.
+   - Its tokens expire after 8 hours, and the worker ignores the refresh token, so after 8 hours you'll be asked to sign in again. You could turn expiry off under Optional features, but it's safer to leave it on.
 5. **Worker variables:** in Cloudflare, set these and redeploy:
-   - `GITHUB_CLIENT_ID`
+   - `GITHUB_CLIENT_ID` (the App's Client ID)
    - `GITHUB_CLIENT_SECRET` (encrypted)
    - `ALLOWED_DOMAINS=abafdez.github.io`
 6. **`base_url`:** put the Worker URL into `static/admin/config.yml`, then push.
