@@ -10,7 +10,9 @@ backend:
   # The sveltia-cms-auth Worker: https://github.com/sveltia/sveltia-cms-auth
   base_url: https://cms-auth.sr-generoso.workers.dev
 
-# Required. Images aren't part of this test: /uploads would also need the /cms-test base.
+# Uploads go to static/uploads and are written /uploads/x.png, without the /cms-test base:
+# the site adds it when it renders the markdown (src/lib/render.ts), so the same content
+# works in dev, on GitHub Pages and in the preview.
 media_folder: static/uploads
 public_folder: /uploads
 

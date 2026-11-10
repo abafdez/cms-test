@@ -1,11 +1,16 @@
 <!-- A post as the site shows it. Used by /posts/[slug] (saved content) and /preview (the
      unsaved entry sent by the CMS), so the preview is the real page, not a copy of it. -->
 <script lang="ts">
+	import { asset } from '$app/paths';
+	import type { AssetPath } from '$app/types';
 	import { renderMarkdown } from '#lib/render.ts';
 
 	let { title, date, body }: { title: string; date: string; body: string } = $props();
 
-	const html = $derived(renderMarkdown(body));
+	// asset() adds the base path (/cms-test on GitHub Pages, nothing in dev) to the CMS's
+	// /uploads/… images. The cast: AssetPath only knows the files static/ had at build
+	// time, and the preview shows uploads the build has never seen.
+	const html = $derived(renderMarkdown(body, (path) => asset(path as AssetPath)));
 </script>
 
 <article>
