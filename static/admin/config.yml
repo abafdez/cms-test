@@ -1,0 +1,33 @@
+# Sveltia CMS. Docs: https://sveltiacms.app/en/docs
+# Hosted: /cms-test/admin/ on GitHub Pages, signing in with GitHub through the Cloudflare
+# Worker (base_url). In dev: http://localhost:5173/admin/index.html, "Work with Local
+# Repository" (no sign-in, no worker).
+
+backend:
+  name: github
+  repo: abafdez/cms-test # TODO if the repo has another name
+  branch: main
+  # The sveltia-cms-auth Worker: https://github.com/sveltia/sveltia-cms-auth
+  base_url: https://sveltia-cms-auth.YOUR-SUBDOMAIN.workers.dev # TODO
+
+# Required. Images aren't part of this test: /uploads would also need the /cms-test base.
+media_folder: static/uploads
+public_folder: /uploads
+
+collections:
+  - name: posts
+    label: Posts
+    label_singular: Post
+    folder: content/posts
+    create: true
+    slug: '{{slug}}'
+    # The preview template in preview.js is registered for this name.
+    fields:
+      - { name: title, label: Title, widget: string }
+      - name: date
+        label: Date
+        widget: datetime
+        type: date
+        format: YYYY-MM-DD
+        default: '{{now}}'
+      - { name: body, label: Body, widget: richtext }
