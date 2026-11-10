@@ -10,6 +10,14 @@ backend:
   # The sveltia-cms-auth Worker: https://github.com/sveltia/sveltia-cms-auth
   base_url: https://cms-auth.sr-generoso.workers.dev
 
+# https://sveltiacms.app/en/docs/customization
+# The published site, with its base path. Used for the "live site" link (display_url
+# defaults to it), the per-entry links built from preview_path, and asset URLs. Without
+# it Sveltia uses location.origin, abafdez.github.io, which drops /cms-test.
+site_url: https://abafdez.github.io/cms-test
+app_title: CMS test
+logout_redirect_url: https://abafdez.github.io/cms-test/
+
 # Uploads go to static/uploads and are written /uploads/x.png, without the /cms-test base:
 # the site adds it when it renders the markdown (src/lib/render.ts), so the same content
 # works in dev, on GitHub Pages and in the preview.
@@ -23,6 +31,8 @@ collections:
     folder: content/posts
     create: true
     slug: '{{slug}}'
+    # The entry's page on the live site (site_url + this), linked from the editor.
+    preview_path: posts/{{slug}}
     # The preview template in preview.js is registered for this name.
     fields:
       - { name: title, label: Title, widget: string }
