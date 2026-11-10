@@ -52,4 +52,79 @@ function PostPreview({ entry }) {
 }
 
 CMS.registerPreviewTemplate('posts', PostPreview);
-CMS.init();
+
+// Our fenced blocks (```yt…) as editor components: a button in the body's toolbar and a
+// form in a dialog, instead of typing YAML. Their fields come from the site's registry
+// (src/lib/blocks.ts), prerendered as admin/blocks.json next to this file.
+const widgets = {
+	text: { widget: 'string' },
+	youtube: { widget: 'string', hint: 'Any YouTube link' },
+	image: { widget: 'image' }
+};
+
+// One YAML value on one line: plain when YAML reads it back as the same text, otherwise
+// double-quoted (a JSON string is valid YAML). The site reads it with a real YAML parser.
+const scalar = (value) =>
+	value !== '' &&
+	!/^[\s\-?:,[\]{}#&*!|>'"%@`]|\s$|: | #/.test(value) &&
+	!/^(true|false|yes|no|on|off|null|~|[-+]?(\d[\d_.]*|\.\d+)(e[-+]?\d+)?)$/i.test(value)
+		? value
+		: JSON.stringify(value);
+
+// …and back: "name: value" lines; quoted values unquoted.
+function readLines(yaml) {
+	const values = {};
+	for (const line of yaml.split('\n')) {
+		const [, name, raw = ''] = line.match(/^(\w+):\s*(.*?)\s*$/) ?? [];
+		if (!name) continue;
+		values[name] = raw.startsWith('"')
+			? JSON.parse(raw)
+			: raw.startsWith("'")
+				? raw.slice(1, -1).replaceAll("''", "'")
+				: raw;
+	}
+	return values;
+}
+
+const escape = (text) =>
+	String(text ?? '').replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
+
+function editorComponent(name, { label, fields }) {
+	const names = Object.keys(fields);
+	return {
+		id: name,
+		label,
+		icon: 'smart_display',
+		mode: 'dialog',
+		summary: `${label}: {{title}}`,
+		fields: names.map((field) => ({
+			name: field,
+			label: fields[field].label,
+			required: fields[field].required,
+			...widgets[fields[field].kind]
+		})),
+		// A whole fenced block: ```name, its YAML, ``` (m: ^ and $ match at line ends).
+		pattern: new RegExp(`^\`\`\`${name}\\n(?<yaml>[\\s\\S]*?)\\n\`\`\`$`, 'm'),
+		fromBlock: (match) => readLines(match.groups?.yaml ?? ''),
+		toBlock(values) {
+			const lines = names
+				.filter((field) => values[field] !== undefined && values[field] !== null && values[field] !== '')
+				.map((field) => `${field}: ${scalar(String(values[field]))}`);
+			return `\`\`\`${name}\n${lines.join('\n')}\n\`\`\``;
+		},
+		// Inside the editor only; the preview pane shows the real component.
+		toPreview: (values) => `<p>▶ ${escape(label)}: ${escape(values.title || values.src)}</p>`
+	};
+}
+
+// The blocks first, then the CMS: editor components must be registered before init().
+// If the file can't be read, the CMS still starts, with blocks editable as plain text.
+fetch(new URL('blocks.json', location.href))
+	.then((response) => response.json())
+	.then((blocks) => {
+		for (const [name, block] of Object.entries(blocks)) {
+			CMS.registerEditorComponent(editorComponent(name, block));
+		}
+	})
+	.catch((error) => console.error('Could not load the blocks for the editor:', error))
+	.finally(() => CMS.init());

@@ -22,8 +22,8 @@ export default defineConfig({
 			// A static site for GitHub Pages. static/admin/ (the CMS) is copied as is.
 			adapter: adapter({ fallback: '404.html' }),
 			paths: { base: base as `/${string}` | '' },
-			// /preview isn't linked from any page, so the crawler wouldn't find it.
-			prerender: { entries: ['*', '/preview'] },
+			// Not linked from any page, so the crawler wouldn't find them.
+			prerender: { entries: ['*', '/preview', '/admin/blocks.json'] },
 			// mdsvex only for .svx: content/*.md is read as text (?raw) and rendered by
 			// src/lib/render.ts, the same code the CMS preview uses in the browser.
 			preprocess: [mdsvex({ extensions: ['.svx'] })],

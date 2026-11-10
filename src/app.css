@@ -1,0 +1,68 @@
+/* The site's look. The live preview is a page of this site, so it gets all of this with
+   no CSS on the CMS side (no registerPreviewStyle, no copied component styles). */
+:root {
+	color-scheme: light dark;
+	--surface-1: light-dark(#fbfaf7, #14161a);
+	--surface-2: light-dark(#f1eee7, #1d2026);
+	--surface-3: light-dark(#e4dfd3, #272b33);
+	--text-1: light-dark(#1d1b16, #ece9e1);
+	--text-2: light-dark(#5c574b, #a7a397);
+	--border: light-dark(#d6d0c2, #353a44);
+	--grid: light-dark(#d6d0c288, #353a4488);
+	--accent: light-dark(#b4401c, #ff8a5c);
+	--on-accent: light-dark(#fff, #14161a);
+	--danger: light-dark(#b3261e, #ff8a80);
+	--radius: 0.5rem;
+	--font-body: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+	--font-ui: system-ui, sans-serif;
+	--font-code: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+}
+
+body {
+	margin: 0;
+	background: var(--surface-1);
+	color: var(--text-1);
+	font: 1.125rem/1.65 var(--font-body);
+}
+
+a {
+	color: var(--accent);
+}
+
+h1,
+h2,
+h3 {
+	font-family: var(--font-ui);
+	line-height: 1.2;
+	text-wrap: balance;
+}
+
+/* Markdown output. */
+.prose :where(img) {
+	max-width: 100%;
+	height: auto;
+	border-radius: var(--radius);
+}
+.prose :where(code) {
+	font: 0.9em var(--font-code);
+	background: var(--surface-2);
+	padding: 0.1em 0.3em;
+	border-radius: 0.25rem;
+}
+.prose :where(pre) {
+	overflow-x: auto;
+	padding: 1rem;
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+}
+.prose :where(pre code) {
+	padding: 0;
+	background: none;
+}
+.prose :where(blockquote) {
+	margin-inline: 0;
+	padding-left: 1rem;
+	border-left: 4px solid var(--accent);
+	color: var(--text-2);
+}
