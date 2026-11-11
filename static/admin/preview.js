@@ -17,6 +17,27 @@ const origin = location.origin;
 // Immutable Map → plain object.
 const plain = (value) => value?.toJS?.() ?? value ?? {};
 
+// EXPERIMENT, editing in the preview: the page sends back what was edited there
+// (cms-preview-edit), and it's written into the form as if typed, so the CMS's own state,
+// its editor and the preview all follow. Sveltia has no API for this; it's its form:
+// each field is a section[data-key-path], and the rich text editor keeps its markdown in
+// a hidden textarea (its "Edit in Markdown" mode), which it reads on input.
+const controls = {
+	title: 'input',
+	body: 'textarea[id$="-plain-text"]'
+};
+
+function writeField(field, value) {
+	const control = controls[field] && document.querySelector(`section[data-key-path="${field}"] ${controls[field]}`);
+	if (!control) return console.warn(`Preview edit: no control for the "${field}" field`);
+	if (control.value === value) return;
+	// The prototype's setter: the CMS (Svelte) may watch the element's own value property.
+	const { set } = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(control), 'value');
+	set.call(control, value);
+	control.dispatchEvent(new Event('input', { bubbles: true }));
+	control.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
 function PostPreview({ entry }) {
 	const frame = useRef(null);
 	const { title = '', date = '', body = '' } = plain(entry.get('data'));
@@ -27,11 +48,14 @@ function PostPreview({ entry }) {
 	latest.current = message;
 	const send = () => frame.current?.contentWindow?.postMessage(latest.current, origin);
 
-	// The page asks for the entry once it has loaded. Its parent is the preview pane's
-	// document, so listen there (and on this window, in case the pane isn't a frame).
+	// The page asks for the entry once it has loaded, and sends edits made in it. Its parent
+	// is the preview pane's document, so listen there (and on this window, in case the pane
+	// isn't a frame).
 	useEffect(() => {
 		const receive = (event) => {
-			if (event.source === frame.current?.contentWindow && event.data?.type === 'cms-preview-ready') send();
+			if (event.source !== frame.current?.contentWindow) return;
+			if (event.data?.type === 'cms-preview-ready') send();
+			if (event.data?.type === 'cms-preview-edit') writeField(event.data.field, String(event.data.value ?? ''));
 		};
 		const windows = new Set([window, frame.current?.ownerDocument?.defaultView].filter(Boolean));
 		for (const win of windows) win.addEventListener('message', receive);
